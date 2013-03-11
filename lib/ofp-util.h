@@ -420,27 +420,29 @@ enum ofputil_action_bitmap {
     OFPUTIL_A_STRIP_VLAN     = 1 << 3,
     OFPUTIL_A_SET_DL_SRC     = 1 << 4,
     OFPUTIL_A_SET_DL_DST     = 1 << 5,
-    OFPUTIL_A_SET_NW_SRC     = 1 << 6,
-    OFPUTIL_A_SET_NW_DST     = 1 << 7,
-    OFPUTIL_A_SET_NW_ECN     = 1 << 8,
-    OFPUTIL_A_SET_NW_TOS     = 1 << 9,
-    OFPUTIL_A_SET_TP_SRC     = 1 << 10,
-    OFPUTIL_A_SET_TP_DST     = 1 << 11,
-    OFPUTIL_A_ENQUEUE        = 1 << 12,
-    OFPUTIL_A_COPY_TTL_OUT   = 1 << 13,
-    OFPUTIL_A_COPY_TTL_IN    = 1 << 14,
-    OFPUTIL_A_SET_MPLS_LABEL = 1 << 15,
-    OFPUTIL_A_SET_MPLS_TC    = 1 << 16,
-    OFPUTIL_A_SET_MPLS_TTL   = 1 << 17,
-    OFPUTIL_A_DEC_MPLS_TTL   = 1 << 18,
-    OFPUTIL_A_PUSH_VLAN      = 1 << 19,
-    OFPUTIL_A_POP_VLAN       = 1 << 20,
-    OFPUTIL_A_PUSH_MPLS      = 1 << 21,
-    OFPUTIL_A_POP_MPLS       = 1 << 22,
-    OFPUTIL_A_SET_QUEUE      = 1 << 23,
-    OFPUTIL_A_GROUP          = 1 << 24,
-    OFPUTIL_A_SET_NW_TTL     = 1 << 25,
-    OFPUTIL_A_DEC_NW_TTL     = 1 << 26,
+    OFPUTIL_A_SET_ARP_SRC    = 1 << 6,
+    OFPUTIL_A_SET_ARP_DST    = 1 << 7,
+    OFPUTIL_A_SET_NW_SRC     = 1 << 8,
+    OFPUTIL_A_SET_NW_DST     = 1 << 9,
+    OFPUTIL_A_SET_NW_ECN     = 1 << 10,
+    OFPUTIL_A_SET_NW_TOS     = 1 << 11,
+    OFPUTIL_A_SET_TP_SRC     = 1 << 12,
+    OFPUTIL_A_SET_TP_DST     = 1 << 13,
+    OFPUTIL_A_ENQUEUE        = 1 << 14,
+    OFPUTIL_A_COPY_TTL_OUT   = 1 << 15,
+    OFPUTIL_A_COPY_TTL_IN    = 1 << 16,
+    OFPUTIL_A_SET_MPLS_LABEL = 1 << 17,
+    OFPUTIL_A_SET_MPLS_TC    = 1 << 18,
+    OFPUTIL_A_SET_MPLS_TTL   = 1 << 19,
+    OFPUTIL_A_DEC_MPLS_TTL   = 1 << 20,
+    OFPUTIL_A_PUSH_VLAN      = 1 << 21,
+    OFPUTIL_A_POP_VLAN       = 1 << 22,
+    OFPUTIL_A_PUSH_MPLS      = 1 << 23,
+    OFPUTIL_A_POP_MPLS       = 1 << 24,
+    OFPUTIL_A_SET_QUEUE      = 1 << 25,
+    OFPUTIL_A_GROUP          = 1 << 26,
+    OFPUTIL_A_SET_NW_TTL     = 1 << 27,
+    OFPUTIL_A_DEC_NW_TTL     = 1 << 28,
 };
 
 /* Abstract ofp_switch_features. */
@@ -566,6 +568,8 @@ bool ofputil_frag_handling_from_string(const char *, enum ofp_config_flags *);
  * OFPUTIL_OFPAT10_STRIP_VLAN
  * OFPUTIL_OFPAT10_SET_DL_SRC
  * OFPUTIL_OFPAT10_SET_DL_DST
+ * OFPUTIL_OFPAT10_SET_ARP_SRC
+ * OFPUTIL_OFPAT10_SET_ARP_DST
  * OFPUTIL_OFPAT10_SET_NW_SRC
  * OFPUTIL_OFPAT10_SET_NW_DST
  * OFPUTIL_OFPAT10_SET_NW_TOS

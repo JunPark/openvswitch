@@ -1093,6 +1093,8 @@ get_features(struct ofproto *ofproto_ OVS_UNUSED,
                 OFPUTIL_A_STRIP_VLAN |
                 OFPUTIL_A_SET_DL_SRC |
                 OFPUTIL_A_SET_DL_DST |
+                OFPUTIL_A_SET_ARP_SRC |
+                OFPUTIL_A_SET_ARP_DST |
                 OFPUTIL_A_SET_NW_SRC |
                 OFPUTIL_A_SET_NW_DST |
                 OFPUTIL_A_SET_NW_TOS |
@@ -5013,9 +5015,16 @@ execute_controller_action(struct action_xlate_ctx *ctx, int len,
 
     if (packet->l2 && packet->l3) {
         struct eth_header *eh;
+        struct arp_eth_header *arp;
 
         eth_pop_vlan(packet);
         eh = packet->l2;
+        arp = packet->l3;
+
+        VLOG_DBG("Before assert: in execute_controller_action: flow.dl_type:%d, eth_src:"ETH_ADDR_FMT" eth_dst:"ETH_ADDR_FMT" arp:%p",
+            ctx->flow.dl_type,
+            ETH_ADDR_ARGS(eh->eth_src),
+            ETH_ADDR_ARGS(eh->eth_dst), arp);
 
         /* If the Ethernet type is less than ETH_TYPE_MIN, it's likely an 802.2
          * LLC frame.  Calculating the Ethernet type of these frames is more
@@ -5029,6 +5038,39 @@ execute_controller_action(struct action_xlate_ctx *ctx, int len,
         if (ctx->flow.vlan_tci & htons(VLAN_CFI)) {
             eth_push_vlan(packet, ctx->flow.vlan_tci);
         }
+
+        VLOG_DBG("After assert: in execute_controller_action: flow.dl_type:%d, eth_src:"ETH_ADDR_FMT" eth_dst:"ETH_ADDR_FMT" arp:%p",
+            ctx->flow.dl_type,
+            ETH_ADDR_ARGS(eh->eth_src),
+            ETH_ADDR_ARGS(eh->eth_dst), arp);
+
+        //JunPark XXX: not sure if this is a right patch... 10/3/12
+        /*
+        if (ctx->flow.dl_type == htons(ETH_TYPE_ARP)) {
+            VLOG_DBG("Updating in execute_controller_action: arp_sha:"ETH_ADDR_FMT" arp_tha:"ETH_ADDR_FMT" dl_src:"ETH_ADDR_FMT" dl_src:"ETH_ADDR_FMT" ethertype:%d",
+                ETH_ADDR_ARGS(ctx->flow.arp_sha),
+                ETH_ADDR_ARGS(ctx->flow.arp_tha),
+                ETH_ADDR_ARGS(ctx->flow.dl_src),
+                ETH_ADDR_ARGS(ctx->flow.dl_dst),
+                ETH_TYPE_ARP);
+
+
+            if (ctx->flow.nw_proto == ARP_OP_REQUEST ||
+                ctx->flow.nw_proto == ARP_OP_REPLY) {
+                arp->ar_op = htons(ctx->flow.nw_proto);
+                arp->ar_spa = ctx->flow.nw_src;
+                arp->ar_tpa = ctx->flow.nw_dst;
+                memcpy(arp->ar_sha, ctx->flow.arp_sha, ETH_ADDR_LEN);
+                memcpy(arp->ar_tha, ctx->flow.arp_tha, ETH_ADDR_LEN);
+            }
+
+            VLOG_DBG("After update:: in execute_controller_action: arp_sha:"ETH_ADDR_FMT" arp_tha:"ETH_ADDR_FMT" dl_src:"IP_FMT" dl_src:"IP_FMT" ethertype:%d",
+                ETH_ADDR_ARGS(arp->ar_sha),
+                ETH_ADDR_ARGS(arp->ar_tha),
+                IP_ARGS(&arp->ar_spa),
+                IP_ARGS(&arp->ar_tpa),
+                ETH_TYPE_ARP);
+        } */
 
         if (packet->l4) {
             if (ctx->flow.dl_type == htons(ETH_TYPE_IP)) {
@@ -5337,6 +5379,7 @@ do_xlate_actions(const union ofp_action *in, size_t n_in,
     }
     OFPUTIL_ACTION_FOR_EACH_UNSAFE (ia, left, in, n_in) {
         const struct ofp_action_dl_addr *oada;
+        const struct ofp_action_arp_addr *oaaa;
         const struct nx_action_resubmit *nar;
         const struct nx_action_set_tunnel *nast;
         const struct nx_action_set_queue *nasq;
@@ -5381,6 +5424,52 @@ do_xlate_actions(const union ofp_action *in, size_t n_in,
         case OFPUTIL_OFPAT10_SET_DL_DST:
             oada = ((struct ofp_action_dl_addr *) ia);
             memcpy(ctx->flow.dl_dst, oada->dl_addr, ETH_ADDR_LEN);
+            break;
+
+        case OFPUTIL_OFPAT10_SET_ARP_SRC:
+            oaaa = ((struct ofp_action_arp_addr *) ia);
+
+            VLOG_DBG("before mod_arp_sha():arp_sha:"ETH_ADDR_FMT" arp_tha:"
+                ETH_ADDR_FMT" dl_src:"ETH_ADDR_FMT" dl_src:"ETH_ADDR_FMT
+                " Ethertype:0x%04X,ARP_OP:%d,sip:"IP_FMT",tip:"IP_FMT,
+                ETH_ADDR_ARGS(ctx->flow.arp_sha),
+                ETH_ADDR_ARGS(ctx->flow.arp_tha),
+                ETH_ADDR_ARGS(ctx->flow.dl_src),
+                ETH_ADDR_ARGS(ctx->flow.dl_dst),
+                ETH_TYPE_ARP,
+                ctx->flow.nw_proto,
+                IP_ARGS(&ctx->flow.nw_src),
+                IP_ARGS(&ctx->flow.nw_dst));
+
+            memcpy(ctx->flow.arp_sha, oaaa->arp_addr, ETH_ADDR_LEN);
+
+            VLOG_DBG("after mod_arp_sha()arp_sha:"ETH_ADDR_FMT" arp_tha:"
+                ETH_ADDR_FMT" dl_src:"ETH_ADDR_FMT" dl_dst:"ETH_ADDR_FMT
+                " Ethertype:0x%04X,ARP_OP:%d,sip:"IP_FMT",tip:"IP_FMT,
+                ETH_ADDR_ARGS(ctx->flow.arp_sha),
+                ETH_ADDR_ARGS(ctx->flow.arp_tha),
+                ETH_ADDR_ARGS(ctx->flow.dl_src),
+                ETH_ADDR_ARGS(ctx->flow.dl_dst),
+                ETH_TYPE_ARP,
+                ctx->flow.nw_proto,
+                IP_ARGS(&ctx->flow.nw_src),
+                IP_ARGS(&ctx->flow.nw_dst));
+            break;
+
+        case OFPUTIL_OFPAT10_SET_ARP_DST:
+            oaaa = ((struct ofp_action_arp_addr *) ia);
+            memcpy(ctx->flow.arp_tha, oaaa->arp_addr, ETH_ADDR_LEN);
+            VLOG_DBG("after mod_arp_tha():arp_sha:"ETH_ADDR_FMT" arp_tha:"
+                ETH_ADDR_FMT" dl_src:"ETH_ADDR_FMT" dl_dst:"ETH_ADDR_FMT
+                " Ethertype:0x%04X,ARP_OP:%d,sip:"IP_FMT",tip:"IP_FMT,
+                ETH_ADDR_ARGS(ctx->flow.arp_sha),
+                ETH_ADDR_ARGS(ctx->flow.arp_tha),
+                ETH_ADDR_ARGS(ctx->flow.dl_src),
+                ETH_ADDR_ARGS(ctx->flow.dl_dst),
+                ETH_TYPE_ARP,
+                ctx->flow.nw_proto,
+                IP_ARGS(&ctx->flow.nw_src),
+                IP_ARGS(&ctx->flow.nw_dst));
             break;
 
         case OFPUTIL_OFPAT10_SET_NW_SRC:

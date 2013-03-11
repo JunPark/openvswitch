@@ -314,6 +314,7 @@ parse_named_action(enum ofputil_action_code code, const struct flow *flow,
                    struct ofpbuf *b, char *arg)
 {
     struct ofp_action_dl_addr *oada;
+    struct ofp_action_arp_addr *oaaa;
     struct ofp_action_vlan_pcp *oavp;
     struct ofp_action_vlan_vid *oavv;
     struct ofp_action_nw_addr *oana;
@@ -342,6 +343,12 @@ parse_named_action(enum ofputil_action_code code, const struct flow *flow,
     case OFPUTIL_OFPAT10_SET_DL_DST:
         oada = ofputil_put_action(code, b);
         str_to_mac(arg, oada->dl_addr);
+        break;
+
+    case OFPUTIL_OFPAT10_SET_ARP_SRC:
+    case OFPUTIL_OFPAT10_SET_ARP_DST:
+        oaaa = ofputil_put_action(code, b);
+        str_to_mac(arg, oaaa->arp_addr);
         break;
 
     case OFPUTIL_OFPAT10_SET_NW_SRC:

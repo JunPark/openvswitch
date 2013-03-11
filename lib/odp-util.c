@@ -827,7 +827,7 @@ odp_flow_key_format(const struct nlattr *key, size_t key_len, struct ds *ds)
         }
         if (left) {
             int i;
-            
+
             if (left == key_len) {
                 ds_put_cstr(ds, "<empty>");
             }
@@ -1276,6 +1276,9 @@ odp_flow_key_from_flow(struct ofpbuf *buf, const struct flow *flow)
     memcpy(eth_key->eth_src, flow->dl_src, ETH_ADDR_LEN);
     memcpy(eth_key->eth_dst, flow->dl_dst, ETH_ADDR_LEN);
 
+    //VLOG_DBG("odp_flow_key_from_flow::arp_key:: arp_sha:"ETH_ADDR_FMT" arp_tha:"ETH_ADDR_FMT" sip:"IP_FMT" tip:"IP_FMT,
+
+
     if (flow->vlan_tci != htons(0) || flow->dl_type == htons(ETH_TYPE_VLAN)) {
         nl_msg_put_be16(buf, OVS_KEY_ATTR_ETHERTYPE, htons(ETH_TYPE_VLAN));
         nl_msg_put_be16(buf, OVS_KEY_ATTR_VLAN, flow->vlan_tci);
@@ -1327,6 +1330,13 @@ odp_flow_key_from_flow(struct ofpbuf *buf, const struct flow *flow)
         arp_key->arp_op = htons(flow->nw_proto);
         memcpy(arp_key->arp_sha, flow->arp_sha, ETH_ADDR_LEN);
         memcpy(arp_key->arp_tha, flow->arp_tha, ETH_ADDR_LEN);
+
+        VLOG_DBG("odp_flow_key_from_flow::arp_key:: arp_op:%u, arp_sha:"ETH_ADDR_FMT" arp_tha:"ETH_ADDR_FMT" sip:"IP_FMT" tip:"IP_FMT,
+            arp_key->arp_op,
+            ETH_ADDR_ARGS(arp_key->arp_sha),
+            ETH_ADDR_ARGS(arp_key->arp_tha),
+            IP_ARGS(&arp_key->arp_sip),
+            IP_ARGS(&arp_key->arp_tip));
     }
 
     if ((flow->dl_type == htons(ETH_TYPE_IP)
@@ -1876,8 +1886,50 @@ commit_set_ether_addr_action(const struct flow *flow, struct flow *base,
     memcpy(eth_key.eth_src, base->dl_src, ETH_ADDR_LEN);
     memcpy(eth_key.eth_dst, base->dl_dst, ETH_ADDR_LEN);
 
+    VLOG_DBG("Appyling new mac of dl_src:"ETH_ADDR_FMT" dl_dst:"ETH_ADDR_FMT" to src:"ETH_ADDR_FMT",dst:"ETH_ADDR_FMT,
+        ETH_ADDR_ARGS(flow->dl_src),
+        ETH_ADDR_ARGS(flow->dl_dst),
+        ETH_ADDR_ARGS(base->dl_src),
+        ETH_ADDR_ARGS(base->dl_dst));
+
     commit_set_action(odp_actions, OVS_KEY_ATTR_ETHERNET,
                       &eth_key, sizeof(eth_key));
+}
+
+static void
+commit_set_arp_addr_action(const struct flow *flow, struct flow *base,
+                             struct ofpbuf *odp_actions)
+{
+    struct ovs_key_arp arp_key;
+
+    if (eth_addr_equals(base->arp_sha, flow->arp_sha) &&
+        eth_addr_equals(base->arp_tha, flow->arp_tha)) {
+        //VLOG_ERR_RL(&rl, "commit_set_ARP_addr_action: skipped because no action required for sha:"ETH_ADDR_FMT", tha:"ETH_ADDR_FMT,
+        //    ETH_ADDR_ARGS(base->arp_sha), ETH_ADDR_ARGS(base->arp_tha));
+        return;
+    }
+
+    base->nw_src = flow->nw_src;
+    base->nw_dst = flow->nw_dst;
+    base->nw_proto = flow->nw_proto;
+    memcpy(base->arp_sha, flow->arp_sha, ETH_ADDR_LEN);
+    memcpy(base->arp_tha, flow->arp_tha, ETH_ADDR_LEN);
+
+    arp_key.arp_sip = base->nw_src;
+    arp_key.arp_tip = base->nw_dst;
+    arp_key.arp_op = base->nw_proto;
+    memcpy(arp_key.arp_sha, base->arp_sha, ETH_ADDR_LEN);
+    memcpy(arp_key.arp_tha, base->arp_tha, ETH_ADDR_LEN);
+
+    VLOG_DBG("commit_set_ARP_addr_action: arp_key:: arp_op:%u, arp_sha:"ETH_ADDR_FMT" arp_tha:"ETH_ADDR_FMT" src:"IP_FMT" dst:"IP_FMT,
+        arp_key.arp_op,
+        ETH_ADDR_ARGS(arp_key.arp_sha),
+        ETH_ADDR_ARGS(arp_key.arp_tha),
+        IP_ARGS(&arp_key.arp_sip),
+        IP_ARGS(&arp_key.arp_tip));
+
+    commit_set_action(odp_actions, OVS_KEY_ATTR_ARP,
+                      &arp_key, sizeof(arp_key));
 }
 
 static void
@@ -2029,6 +2081,7 @@ commit_odp_actions(const struct flow *flow, struct flow *base,
 {
     commit_set_tun_id_action(flow, base, odp_actions);
     commit_set_ether_addr_action(flow, base, odp_actions);
+    commit_set_arp_addr_action(flow, base, odp_actions);
     commit_vlan_action(flow, base, odp_actions);
     commit_set_nw_action(flow, base, odp_actions);
     commit_set_port_action(flow, base, odp_actions);

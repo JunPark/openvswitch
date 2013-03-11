@@ -134,8 +134,56 @@ static int set_eth_addr(struct sk_buff *skb,
 	memcpy(eth_hdr(skb)->h_source, eth_key->eth_src, ETH_ALEN);
 	memcpy(eth_hdr(skb)->h_dest, eth_key->eth_dst, ETH_ALEN);
 
+    /*pr_warn("Results:set_ETH_addr::packet::mac_src:%02x:%02x:%02x:%02x:%02x:%02x",
+            eth_hdr(skb)->h_source[0], eth_hdr(skb)->h_source[1],
+            eth_hdr(skb)->h_source[2], eth_hdr(skb)->h_source[3],
+            eth_hdr(skb)->h_source[4], eth_hdr(skb)->h_source[5]); */
+
 	return 0;
 }
+
+static int set_arp_addr(struct sk_buff *skb,
+            const struct ovs_key_arp *arp_key)
+{
+    unsigned char *arp_payload;
+    unsigned char *arp_sha, *arp_tha;
+    int offset_for_arp, arp_hdr_size;
+
+    int err;
+    err = make_writable(skb, ETH_HLEN);
+    if (unlikely(err))
+        return err;
+
+    arp_hdr_size = sizeof(struct arphdr);
+    if (skb->protocol == htons(ETH_P_8021Q) &&
+        !vlan_tx_tag_present(skb))
+        // VLAN_ETH_HLEN = 18, arp_hdr_size = 8
+        offset_for_arp = VLAN_ETH_HLEN + arp_hdr_size;
+    else
+        // ETH_HLEN = 14, arp_hdr_size = 8
+        offset_for_arp = ETH_HLEN + arp_hdr_size;
+
+    arp_payload = (unsigned char*) eth_hdr(skb) + offset_for_arp;
+    arp_sha = (unsigned char*) arp_payload;
+    // 10 <= SHA(6) + SPA(4), then THA(6) in ARP format
+    arp_tha = (unsigned char*) arp_payload + 10;
+
+    memcpy(arp_sha, arp_key->arp_sha, ETH_ALEN);
+    memcpy(arp_tha, arp_key->arp_tha, ETH_ALEN);
+
+    /*pr_warn("mod_arp_sha/tha: offset_for_arp:%d, arp_hdr_size:%d",
+     *offset_for_arp, arp_hdr_size);
+
+    pr_warn("Results: mod_arp_sha/tha: arp_sha:%02x:%02x:%02x:%02x:%02x:%02x",
+            arp_sha[0], arp_sha[1], arp_sha[2],
+            arp_sha[3], arp_sha[4], arp_sha[5]);
+    pr_warn("Results: mod_arp_sha/tha: arp_tha:%02x:%02x:%02x:%02x:%02x:%02x",
+            arp_tha[0], arp_tha[1], arp_tha[2],
+            arp_tha[3], arp_tha[4], arp_tha[5]); */
+
+    return 0;
+}
+
 
 static void set_ip_addr(struct sk_buff *skb, struct iphdr *nh,
 				__be32 *addr, __be32 new_addr)
@@ -348,6 +396,10 @@ static int execute_set_action(struct sk_buff *skb,
 
 	case OVS_KEY_ATTR_ETHERNET:
 		err = set_eth_addr(skb, nla_data(nested_attr));
+		break;
+
+	case OVS_KEY_ATTR_ARP:
+		err = set_arp_addr(skb, nla_data(nested_attr));
 		break;
 
 	case OVS_KEY_ATTR_IPV4:

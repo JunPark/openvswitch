@@ -959,6 +959,8 @@ dpif_execute__(struct dpif *dpif, const struct dpif_execute *execute)
         error = 0;
     }
 
+    VLOG_DBG("DPIF_execute_log: error:%d,",error);
+
     log_execute_message(dpif, execute, error);
 
     return error;
@@ -1191,12 +1193,15 @@ static void
 log_operation(const struct dpif *dpif, const char *operation, int error)
 {
     if (!error) {
-        VLOG_DBG_RL(&dpmsg_rl, "%s: %s success", dpif_name(dpif), operation);
+        //VLOG_DBG_RL(&dpmsg_rl, "%s: %s success", dpif_name(dpif), operation);
+        VLOG_DBG("%s: %s success", dpif_name(dpif), operation);
     } else if (ofperr_is_valid(error)) {
-        VLOG_WARN_RL(&error_rl, "%s: %s failed (%s)",
+        //VLOG_WARN_RL(&error_rl, "%s: %s failed (%s)",
+        VLOG_WARN("%s: %s failed (%s)",
                      dpif_name(dpif), operation, ofperr_get_name(error));
     } else {
-        VLOG_WARN_RL(&error_rl, "%s: %s failed (%s)",
+        //VLOG_WARN_RL(&error_rl, "%s: %s failed (%s)",
+        VLOG_WARN("%s: %s failed (%s)",
                      dpif_name(dpif), operation, strerror(error));
     }
 }

@@ -1064,6 +1064,18 @@ dp_netdev_set_dl(struct ofpbuf *packet, const struct ovs_key_ethernet *eth_key)
 }
 
 static void
+dp_netdev_set_arp(struct ofpbuf *packet, const struct ovs_key_arp *arp_key)
+{
+    struct arp_eth_header *arp = packet->l3;
+
+    arp->ar_spa = arp_key->arp_sip;
+    arp->ar_tpa = arp_key->arp_tip;
+    arp->ar_op = arp_key->arp_op;
+    memcpy(arp->ar_sha, arp_key->arp_sha, ETH_ADDR_LEN);
+    memcpy(arp->ar_tha, arp_key->arp_tha, ETH_ADDR_LEN);
+}
+
+static void
 dp_netdev_output_port(struct dp_netdev *dp, struct ofpbuf *packet,
                       uint16_t out_port)
 {
@@ -1173,6 +1185,11 @@ execute_set_action(struct ofpbuf *packet, const struct nlattr *a)
                    nl_attr_get_unspec(a, sizeof(struct ovs_key_ethernet)));
         break;
 
+    case OVS_KEY_ATTR_ARP:
+        dp_netdev_set_arp(packet,
+                   nl_attr_get_unspec(a, sizeof(struct ovs_key_arp)));
+        break;
+
     case OVS_KEY_ATTR_IPV4:
         ipv4_key = nl_attr_get_unspec(a, sizeof(struct ovs_key_ipv4));
         packet_set_ipv4(packet, ipv4_key->ipv4_src, ipv4_key->ipv4_dst,
@@ -1196,7 +1213,6 @@ execute_set_action(struct ofpbuf *packet, const struct nlattr *a)
      case OVS_KEY_ATTR_VLAN:
      case OVS_KEY_ATTR_ICMP:
      case OVS_KEY_ATTR_ICMPV6:
-     case OVS_KEY_ATTR_ARP:
      case OVS_KEY_ATTR_ND:
      case __OVS_KEY_ATTR_MAX:
      default:
