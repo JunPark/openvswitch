@@ -2471,6 +2471,8 @@ static const struct ofputil_action_bit_translation of10_action_bits[] = {
     { OFPUTIL_A_STRIP_VLAN,   OFPAT10_STRIP_VLAN },
     { OFPUTIL_A_SET_DL_SRC,   OFPAT10_SET_DL_SRC },
     { OFPUTIL_A_SET_DL_DST,   OFPAT10_SET_DL_DST },
+    { OFPUTIL_A_SET_ARP_SRC,  OFPAT10_SET_ARP_SRC },
+    { OFPUTIL_A_SET_ARP_DST,  OFPAT10_SET_ARP_DST },
     { OFPUTIL_A_SET_NW_SRC,   OFPAT10_SET_NW_SRC },
     { OFPUTIL_A_SET_NW_DST,   OFPAT10_SET_NW_DST },
     { OFPUTIL_A_SET_NW_TOS,   OFPAT10_SET_NW_TOS },
@@ -3529,6 +3531,8 @@ validate_actions(const union ofp_action *actions, size_t n_actions,
         case OFPUTIL_OFPAT10_SET_TP_DST:
         case OFPUTIL_OFPAT10_SET_DL_SRC:
         case OFPUTIL_OFPAT10_SET_DL_DST:
+        case OFPUTIL_OFPAT10_SET_ARP_SRC:
+        case OFPUTIL_OFPAT10_SET_ARP_DST:
         case OFPUTIL_NXAST_RESUBMIT:
         case OFPUTIL_NXAST_SET_TUNNEL:
         case OFPUTIL_NXAST_SET_QUEUE:

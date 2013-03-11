@@ -806,6 +806,7 @@ dpif_linux_execute__(int dp_ifindex, const struct dpif_execute *execute)
     ofpbuf_use_stub(&request, request_stub, sizeof request_stub);
     dpif_linux_encode_execute(dp_ifindex, execute, &request);
     error = nl_sock_transact(genl_sock, &request, NULL);
+    VLOG_DBG("DPIF_Linux_execute: error:%d", error);
     ofpbuf_uninit(&request);
 
     return error;

@@ -389,6 +389,14 @@ integer between 0 and 65535, inclusive, either in decimal or as a
 hexadecimal number prefixed by \fB0x\fR (e.g. \fB0x0806\fR to match ARP 
 packets).
 .
+.IP \fBmod_arp_src\fB:\fImac\fR
+Sets the source hardware address to \fImac\fR in an ARP packet. Bluehost
+adds this new functionality, which would be available in OpenFlow1.3.
+.
+.IP \fBmod_arp_dst\fB:\fImac\fR
+Sets the destination hardware address to \fImac\fR in an ARP packet.
+Bluehost adds this new functionality, which would be available in OpenFlow1.3.
+.
 .IP \fBnw_src=\fIip\fR[\fB/\fInetmask\fR]
 .IQ \fBnw_dst=\fIip\fR[\fB/\fInetmask\fR]
 When \fBdl_type\fR is 0x0800 (possibly via shorthand, e.g. \fBip\fR

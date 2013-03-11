@@ -168,6 +168,7 @@ ofp_print_action(struct ds *s, const union ofp_action *a,
 {
     const struct ofp_action_enqueue *oae;
     const struct ofp_action_dl_addr *oada;
+    const struct ofp_action_arp_addr *oaaa;
     const struct nx_action_set_tunnel64 *nast64;
     const struct nx_action_set_tunnel *nast;
     const struct nx_action_set_queue *nasq;
@@ -229,6 +230,18 @@ ofp_print_action(struct ds *s, const union ofp_action *a,
         oada = (const struct ofp_action_dl_addr *) a;
         ds_put_format(s, "mod_dl_dst:"ETH_ADDR_FMT,
                       ETH_ADDR_ARGS(oada->dl_addr));
+        break;
+
+    case OFPUTIL_OFPAT10_SET_ARP_SRC:
+        oaaa = (const struct ofp_action_arp_addr *) a;
+        ds_put_format(s, "mod_arp_src:"ETH_ADDR_FMT,
+                      ETH_ADDR_ARGS(oaaa->arp_addr));
+        break;
+
+    case OFPUTIL_OFPAT10_SET_ARP_DST:
+        oaaa = (const struct ofp_action_arp_addr *) a;
+        ds_put_format(s, "mod_arp_dst:"ETH_ADDR_FMT,
+                      ETH_ADDR_ARGS(oaaa->arp_addr));
         break;
 
     case OFPUTIL_OFPAT10_SET_NW_SRC:
@@ -704,6 +717,8 @@ ofputil_action_bitmap_to_name(uint32_t bit)
     case OFPUTIL_A_STRIP_VLAN:     return "STRIP_VLAN";
     case OFPUTIL_A_SET_DL_SRC:     return "SET_DL_SRC";
     case OFPUTIL_A_SET_DL_DST:     return "SET_DL_DST";
+    case OFPUTIL_A_SET_ARP_SRC:    return "SET_ARP_SRC";
+    case OFPUTIL_A_SET_ARP_DST:    return "SET_ARP_DST";
     case OFPUTIL_A_SET_NW_SRC:     return "SET_NW_SRC";
     case OFPUTIL_A_SET_NW_DST:     return "SET_NW_DST";
     case OFPUTIL_A_SET_NW_ECN:     return "SET_NW_ECN";

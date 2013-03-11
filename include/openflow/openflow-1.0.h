@@ -221,6 +221,8 @@ enum ofp10_action_type {
     OFPAT10_STRIP_VLAN,         /* Strip the 802.1q header. */
     OFPAT10_SET_DL_SRC,         /* Ethernet source address. */
     OFPAT10_SET_DL_DST,         /* Ethernet destination address. */
+    OFPAT10_SET_ARP_SRC,        /* ARP source address. */
+    OFPAT10_SET_ARP_DST,        /* ARP destination address. */
     OFPAT10_SET_NW_SRC,         /* IP source address. */
     OFPAT10_SET_NW_DST,         /* IP destination address. */
     OFPAT10_SET_NW_TOS,         /* IP ToS (DSCP field, 6 bits). */
@@ -273,6 +275,15 @@ struct ofp_action_dl_addr {
     uint8_t pad[6];
 };
 OFP_ASSERT(sizeof(struct ofp_action_dl_addr) == 16);
+
+/* Action structure for OFPAT10_SET_ARP_SRC/DST. */
+struct ofp_action_arp_addr {
+    ovs_be16 type;                  /* OFPAT10_SET_ARP_SRC/DST. */
+    ovs_be16 len;                   /* Length is 16. */
+    uint8_t arp_addr[OFP_ETH_ALEN]; /* ARP Ethernet address. */
+    uint8_t pad[6];
+};
+OFP_ASSERT(sizeof(struct ofp_action_arp_addr) == 16);
 
 /* Action structure for OFPAT10_SET_NW_SRC/DST. */
 struct ofp_action_nw_addr {

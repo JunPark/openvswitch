@@ -592,6 +592,7 @@ static int validate_set(const struct nlattr *a,
 	case OVS_KEY_ATTR_PRIORITY:
 	case OVS_KEY_ATTR_TUN_ID:
 	case OVS_KEY_ATTR_ETHERNET:
+	case OVS_KEY_ATTR_ARP:
 		break;
 
 	case OVS_KEY_ATTR_IPV4:
