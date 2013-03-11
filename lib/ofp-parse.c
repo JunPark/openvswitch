@@ -329,6 +329,11 @@ parse_named_action(enum ofputil_action_code code, const struct flow *flow,
         oavv->vlan_vid = htons(str_to_u32(arg));
         break;
 
+    case OFPUTIL_OFPAT10_PUSH_VLAN:
+        oavv = ofputil_put_OFPAT10_PUSH_VLAN(b);
+        oavv->vlan_vid = htons(str_to_u32(arg));
+        break;
+
     case OFPUTIL_OFPAT10_SET_VLAN_PCP:
         oavp = ofputil_put_OFPAT10_SET_VLAN_PCP(b);
         oavp->vlan_pcp = str_to_u32(arg);
@@ -336,6 +341,10 @@ parse_named_action(enum ofputil_action_code code, const struct flow *flow,
 
     case OFPUTIL_OFPAT10_STRIP_VLAN:
         ofputil_put_OFPAT10_STRIP_VLAN(b);
+        break;
+
+    case OFPUTIL_OFPAT10_POP_VLAN:
+        ofputil_put_OFPAT10_POP_VLAN(b);
         break;
 
     case OFPUTIL_OFPAT10_SET_DL_SRC:

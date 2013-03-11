@@ -1884,11 +1884,30 @@ static void
 commit_vlan_action(const struct flow *flow, struct flow *base,
                    struct ofpbuf *odp_actions)
 {
+    /* JunPark:
+     * Even with VLAN_CFI in base, DO NOT CALL POP_VLAN. We are implementing
+     * 8021.1AD (double-tagged VLAN, aka, QinQ).
+     *
+     * base: a given packet
+     * flow: a desired packet to be changed.
+     *
+     * Now only when base->vlan_tci is set **and** flow->vlan_tci = 0
+     * (i.e., no 802.1Q), add "pop_vlan."
+     * Then, if flow->vlan_tci is set, add "push_vlan."
+     *
+     * Limitation: you should not add the same tag between outer and inner tags,
+     * the reason being that the original semantics of 'flow' seems to have
+     * a limited way to interpret 'push_vlan' for 802.1Q packets.
+     */
+
+    VLOG_DBG("commit_vlan_action: base->vlan_tci:0x%04X, flow->vlan_tci:0x%04X",
+            ntohs(base->vlan_tci), ntohs(flow->vlan_tci));
+
     if (base->vlan_tci == flow->vlan_tci) {
         return;
     }
 
-    if (base->vlan_tci & htons(VLAN_CFI)) {
+    if (base->vlan_tci & htons(VLAN_CFI) && flow->vlan_tci == htons(0)) {
         nl_msg_put_flag(odp_actions, OVS_ACTION_ATTR_POP_VLAN);
     }
 

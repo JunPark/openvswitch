@@ -54,6 +54,9 @@ static int __pop_vlan_tci(struct sk_buff *skb, __be16 *current_tci)
 	int err;
 
 	err = make_writable(skb, VLAN_ETH_HLEN);
+
+    // This warning message will be printed out to /var/log/message.
+    // pr_warn("[1] pop_vlan: error:%d", err);
 	if (unlikely(err))
 		return err;
 
@@ -106,12 +109,12 @@ static int pop_vlan(struct sk_buff *skb)
 static int push_vlan(struct sk_buff *skb, const struct ovs_action_push_vlan *vlan)
 {
 	if (unlikely(vlan_tx_tag_present(skb))) {
-		u16 current_tag;
+		//u16 current_tag;
 
 		/* push down current VLAN tag */
-		current_tag = vlan_tx_tag_get(skb);
+		//current_tag = vlan_tx_tag_get(skb);
 
-		if (!__vlan_put_tag(skb, current_tag))
+		if (!__vlan_put_tag(skb, vlan->vlan_tci))
 			return -ENOMEM;
 
 		if (get_ip_summed(skb) == OVS_CSUM_COMPLETE)

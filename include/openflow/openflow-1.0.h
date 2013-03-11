@@ -219,6 +219,8 @@ enum ofp10_action_type {
     OFPAT10_SET_VLAN_VID,       /* Set the 802.1q VLAN id. */
     OFPAT10_SET_VLAN_PCP,       /* Set the 802.1q priority. */
     OFPAT10_STRIP_VLAN,         /* Strip the 802.1q header. */
+    OFPAT10_PUSH_VLAN,          /* Push the 802.1q VLAN id. */
+    OFPAT10_POP_VLAN,           /* Pop the 802.1q VLAN id. */
     OFPAT10_SET_DL_SRC,         /* Ethernet source address. */
     OFPAT10_SET_DL_DST,         /* Ethernet destination address. */
     OFPAT10_SET_NW_SRC,         /* IP source address. */

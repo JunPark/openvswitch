@@ -818,6 +818,17 @@ as necessary to match the value specified.  Valid values are between 0
 .IP \fBstrip_vlan\fR
 Strips the VLAN tag from a packet if it is present.
 .
+.IP \fBpop_vlan\fR
+BH Hack: Strips the VLAN tag from a packet if it is present.
+Bluehost adds this new functionality although it is not included
+in OpenFlow1.0. Equivalent to strip_vlan.
+.
+.IP \fBpush_vlan\fR
+BH Hack: Push the VLAN tag to a packet even if it is already an 802.1Q packet.
+So now you can generate 802.1AD packets (aka, double-tagged packets).
+Bluehost adds this new functionality although it is not included
+in OpenFlow1.0.
+.
 .IP \fBmod_dl_src\fB:\fImac\fR
 Sets the source Ethernet address to \fImac\fR.
 .

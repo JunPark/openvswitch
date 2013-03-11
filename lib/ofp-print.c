@@ -219,6 +219,15 @@ ofp_print_action(struct ds *s, const union ofp_action *a,
         ds_put_cstr(s, "strip_vlan");
         break;
 
+    case OFPUTIL_OFPAT10_PUSH_VLAN:
+        ds_put_format(s, "push_vlan:%"PRIu16,
+                      ntohs(a->vlan_vid.vlan_vid));
+        break;
+
+    case OFPUTIL_OFPAT10_POP_VLAN:
+        ds_put_cstr(s, "pop_vlan");
+        break;
+
     case OFPUTIL_OFPAT10_SET_DL_SRC:
         oada = (const struct ofp_action_dl_addr *) a;
         ds_put_format(s, "mod_dl_src:"ETH_ADDR_FMT,

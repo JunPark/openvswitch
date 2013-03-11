@@ -692,10 +692,10 @@ static int validate_actions(const struct nlattr *attr,
 				return -EINVAL;
 			break;
 
-
 		case OVS_ACTION_ATTR_POP_VLAN:
 			break;
 
+        // JunPark: To do: examin this code for qinq..
 		case OVS_ACTION_ATTR_PUSH_VLAN:
 			vlan = nla_data(a);
 			if (vlan->vlan_tpid != htons(ETH_P_8021Q))
