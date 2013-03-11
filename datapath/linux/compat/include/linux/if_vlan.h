@@ -19,6 +19,10 @@
  * to avoid the need to guess whether the version in the kernel tree is
  * acceptable.
  */
+
+/* BH HACK: for supporting 802.1AD. */
+#define ETH_P_8021AD  0x9100
+
 #define __vlan_put_tag rpl_vlan_put_tag
 static inline struct sk_buff *__vlan_put_tag(struct sk_buff *skb, u16 vlan_tci)
 {
@@ -35,7 +39,11 @@ static inline struct sk_buff *__vlan_put_tag(struct sk_buff *skb, u16 vlan_tci)
 	skb->mac_header -= VLAN_HLEN;
 
 	/* first, the ethernet type */
-	veth->h_vlan_proto = htons(ETH_P_8021Q);
+    if (vlan_tci & htons(VLAN_TAG_PRESENT))
+        // Without this setting, somehow random vlan tags are added additionally.
+	    veth->h_vlan_proto = htons(ETH_P_8021AD);
+    else
+	    veth->h_vlan_proto = htons(ETH_P_8021Q);
 
 	/* now, the TCI */
 	veth->h_vlan_TCI = htons(vlan_tci);

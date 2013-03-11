@@ -358,6 +358,12 @@ dpif_linux_port_add(struct dpif *dpif_, struct netdev *netdev,
 
     if (request.type == OVS_VPORT_TYPE_NETDEV) {
         netdev_linux_ethtool_set_flag(netdev, ETH_FLAG_LRO, "LRO", false);
+        /*error = netdev_linux_ethtool_set_flag(netdev, ETH_FLAG_LRO, "LRO", false);
+        if (error) {
+            VLOG_WARN_RL(&error_rl, "%s: cannot create port `%s' because %s does "
+                     "not exist", dpif_name(dpif_), name, name);
+            return EINVAL;
+        }*/
     }
 
     /* Loop until we find a port that isn't used. */

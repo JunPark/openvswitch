@@ -1091,6 +1091,8 @@ get_features(struct ofproto *ofproto_ OVS_UNUSED,
                 OFPUTIL_A_SET_VLAN_VID |
                 OFPUTIL_A_SET_VLAN_PCP |
                 OFPUTIL_A_STRIP_VLAN |
+                OFPUTIL_A_PUSH_VLAN |
+                OFPUTIL_A_POP_VLAN |
                 OFPUTIL_A_SET_DL_SRC |
                 OFPUTIL_A_SET_DL_DST |
                 OFPUTIL_A_SET_ARP_SRC |
@@ -5413,6 +5415,35 @@ do_xlate_actions(const union ofp_action *in, size_t n_in,
             break;
 
         case OFPUTIL_OFPAT10_STRIP_VLAN:
+            VLOG_DBG("strip_vlan(): vlan_tci:0x%04X", ctx->flow.vlan_tci);
+            ctx->flow.vlan_tci = htons(0);
+            break;
+
+        case OFPUTIL_OFPAT10_PUSH_VLAN:
+
+            VLOG_DBG("before:push_vlan():dl_type:0x%04X"", dl_src:"ETH_ADDR_FMT
+                " dl_dst:"ETH_ADDR_FMT", vlan_vid:%d,vlan_tci:0x%02X",
+                ntohs(ctx->flow.dl_type),
+                ETH_ADDR_ARGS(ctx->flow.dl_src),
+                ETH_ADDR_ARGS(ctx->flow.dl_dst),
+                ntohs(ia->vlan_vid.vlan_vid),
+                ntohs(ctx->flow.vlan_tci));
+
+            ctx->flow.vlan_tci &= ~htons(VLAN_VID_MASK);
+            ctx->flow.vlan_tci |= ia->vlan_vid.vlan_vid | htons(VLAN_CFI);
+
+            VLOG_DBG("after:push_vlan():dl_type:0x%04X"", dl_src:"ETH_ADDR_FMT
+                " dl_dst:"ETH_ADDR_FMT", vlan_vid:%d,vlan_tci:0x%02X",
+                ntohs(ctx->flow.dl_type),
+                ETH_ADDR_ARGS(ctx->flow.dl_src),
+                ETH_ADDR_ARGS(ctx->flow.dl_dst),
+                ntohs(ia->vlan_vid.vlan_vid),
+                ntohs(ctx->flow.vlan_tci));
+
+            break;
+
+        case OFPUTIL_OFPAT10_POP_VLAN:
+            VLOG_DBG("pop_vlan(): vlan_tci:0x%04X", ctx->flow.vlan_tci);
             ctx->flow.vlan_tci = htons(0);
             break;
 
